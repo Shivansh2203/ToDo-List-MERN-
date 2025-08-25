@@ -1,42 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Content = () => {
-  const [task, setTask] = useState('');
+  const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
 
-  const handleSubmit = (e) => {
+  // fetch tasks from backend
+  useEffect(() => {
+    axios.get("http://localhost:5000/tasks")   // adjust port if needed
+      .then(res => setTasks(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+  // add new task (POST)
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!task.trim()) return;
-    setTasks([...tasks, { text: task, done: false }]); // add new task
-    setTask('');
+
+    try {
+      const res = await axios.post("http://localhost:5000/tasks", { text: task });
+      setTasks([...tasks, res.data]);  // add saved task from DB
+      setTask("");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const toggleDone = (i) => {
-    const copy = [...tasks];
-    copy[i].done = !copy[i].done;
-    setTasks(copy);
+  // toggle done (PUT)
+  const toggleDone = async (i, id) => {
+    try {
+      const updated = { ...tasks[i], done: !tasks[i].done };
+      await axios.put(`http://localhost:5000/tasks/${id}`, updated);
+
+      const copy = [...tasks];
+      copy[i] = updated;
+      setTasks(copy);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const deleteTask = (i) => {
-    setTasks(tasks.filter((_, idx) => idx !== i));
+  // delete task (DELETE)
+  const deleteTask = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/tasks/${id}`);
+      setTasks(tasks.filter(t => t._id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
     <div className="flex flex-col justify-center items-center m-2 p-4">
       <h3 className="text-3xl md:text-4xl text-gray-400 font-semibold italic drop-shadow-md mb-6">
-        “Tasks  <span className="text-yellow-400 animate-[glow_5s_ease-in-out_infinite]">
-  Made
-</span>
-
-<style>
-{`
-  @keyframes glow {
-  0%, 100% { opacity: 0.5;filter: brightness(0.85); }
-  50%      { opacity: 1; filter: brightness(1.4); }
-}
-
-`}
-</style> Easy”
+        “Tasks  
+        <span className="text-yellow-400 animate-[glow_5s_ease-in-out_infinite]">
+          Made
+        </span>
+        Easy”
       </h3>
 
       {/* input form */}
@@ -60,16 +81,15 @@ const Content = () => {
       <ul className="mt-6 w-full max-w-md">
         {tasks.map((t, i) => (
           <li
-            key={i}
+            key={t._id}
             className="flex justify-between items-center bg-gray-800 text-gray-300 px-4 py-2 rounded-lg mb-2 shadow-md"
           >
             <span
-              onClick={() => toggleDone(i)}
+              onClick={() => toggleDone(i, t._id)}
               className={`flex-1 cursor-pointer flex items-center gap-2 ${
-                t.done ? 'line-through text-gray-500' : ''
+                t.done ? "line-through text-gray-500" : ""
               }`}
             >
-              {/* checkmark when done */}
               {t.done && (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -90,10 +110,9 @@ const Content = () => {
             </span>
 
             <button
-              onClick={() => deleteTask(i)}
+              onClick={() => deleteTask(t._id)}
               className="ml-2 text-green-400 hover:text-red-500"
             >
-              {/* trash bin svg */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

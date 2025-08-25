@@ -24,7 +24,19 @@ const Content = () => {
   return (
     <div className="flex flex-col justify-center items-center m-2 p-4">
       <h3 className="text-3xl md:text-4xl text-gray-400 font-semibold italic drop-shadow-md mb-6">
-        “Tasks <span className="hover:text-yellow-400">M</span>ade Easy”
+        “Tasks  <span className="text-yellow-400 animate-[glow_5s_ease-in-out_infinite]">
+  Made
+</span>
+
+<style>
+{`
+  @keyframes glow {
+  0%, 100% { opacity: 0.5;filter: brightness(0.85); }
+  50%      { opacity: 1; filter: brightness(1.4); }
+}
+
+`}
+</style> Easy”
       </h3>
 
       {/* input form */}
